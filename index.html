@@ -3,68 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Foobar Covers Gallery</title>
-    <style>
-        body {
-            background-color: #121212;
-            color: #ffffff;
-            font-family: sans-serif;
-            margin: 0;
-            padding: 20px;
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
-            gap: 5px;
-        }
-
-        .gallery-item {
-            position: relative;
-            width: 100%;
-            height: 500px;
-            overflow: hidden;
-            background-color: #1a1a1a;
-        }
-
-        .gallery-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-            transition: transform 0.2s ease;
-        }
-
-        .gallery-item img:hover {
-            transform: scale(1.02);
-        }
-
-        #loading {
-            text-align: center;
-            font-size: 1.2rem;
-            margin-top: 40px;
-            color: #888;
-        }
-
-        @media (max-width: 520px) {
-            .gallery-grid {
-                grid-template-columns: 1fr;
-            }
-            .gallery-item {
-                height: auto;
-                aspect-ratio: 1 / 1;
-            }
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Zen+Dots&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">    
+    <title>Foobar Covers Gallery</title>    
 </head>
 <body>
 
-    <h1>Foobar Covers Gallery</h1>
+    <h1 class="pagetitle">Foobar Covers Gallery</h1>
     <div id="loading">Cargando carátulas...</div>
     <div class="gallery-grid" id="gallery"></div>
 

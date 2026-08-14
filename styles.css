@@ -1,0 +1,61 @@
+
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+            gap: 5px;
+        }
+
+        .gallery-item {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            overflow: hidden;
+            background-color: #1a1a1a;
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.2s ease;
+        }
+
+        .gallery-item img:hover {
+            transform: scale(1.02);
+        }
+
+        #loading {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-top: 40px;
+            color: #888;
+        }
+
+        @media (max-width: 520px) {
+            .gallery-grid {
+                grid-template-columns: 1fr;
+            }
+            .gallery-item {
+                height: auto;
+                aspect-ratio: 1 / 1;
+            }
+        }
+        .pagetitle {
+          font-family: "Zen Dots", sans-serif;
+          font-weight: 400;
+          font-style: normal;
+        }
