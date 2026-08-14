@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Foobar Covers Gallery</title>
+    <title>Foobar Covers Gallery (HD)</title>
     <style>
         body {
             background-color: #121212;
@@ -18,30 +18,31 @@
             margin-bottom: 20px;
         }
 
-        /* Contenedor en Grid con separación exacta de 5px */
+        /* Grid forzado a un mínimo de 500px por tarjeta con separación de 5px */
         .gallery-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
             gap: 5px;
         }
 
         .gallery-item {
             position: relative;
-            aspect-ratio: 1 / 1;
+            width: 100%;
+            height: 500px; /* Fuerza la altura fija a 500px */
             overflow: hidden;
-            background-color: #222;
+            background-color: #1a1a1a;
         }
 
         .gallery-item img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: cover; /* Las escala y recorta para cubrir los 500x500px exactos aunque sean pequeñas */
             display: block;
             transition: transform 0.2s ease;
         }
 
         .gallery-item img:hover {
-            transform: scale(1.03);
+            transform: scale(1.02);
         }
 
         #loading {
@@ -49,6 +50,17 @@
             font-size: 1.2rem;
             margin-top: 40px;
             color: #888;
+        }
+
+        /* Ajuste responsive para pantallas menores de 500px */
+        @media (max-width: 520px) {
+            .gallery-grid {
+                grid-template-columns: 1fr;
+            }
+            .gallery-item {
+                height: auto;
+                aspect-ratio: 1 / 1;
+            }
         }
     </style>
 </head>
@@ -74,7 +86,6 @@
                 
                 const files = await response.json();
                 
-                // Filtrar solo archivos de imagen comunes
                 const imageExtensions = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
                 const images = files.filter(file => {
                     const lowerName = file.name.toLowerCase();
@@ -88,7 +99,7 @@
                     return;
                 }
 
-                // Ordenar de más reciente a más antiguo (si usas timestamp en el nombre)
+                // Ordenar de más reciente a más antiguo por el timestamp del nombre
                 images.sort((a, b) => b.name.localeCompare(a.name));
 
                 images.forEach(img => {
@@ -96,9 +107,9 @@
                     itemDiv.className = "gallery-item";
 
                     const imageElement = document.createElement("img");
-                    imageElement.src = img.download_url; // Usa el raw link directo de GitHub
+                    imageElement.src = img.download_url;
                     imageElement.alt = img.name;
-                    imageElement.loading = "lazy"; // Carga perezosa para optimizar rendimiento
+                    imageElement.loading = "lazy";
 
                     itemDiv.appendChild(imageElement);
                     gallery.appendChild(itemDiv);
