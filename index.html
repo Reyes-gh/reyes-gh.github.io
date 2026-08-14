@@ -56,16 +56,15 @@
     <div id="loading">Cargando carátulas...</div>
     <div class="gallery-grid" id="gallery"></div>
 
-    <script>
+<script>
         const GITHUB_USER = "Reyes-gh";
         const REPO_NAME = "reyes-gh.github.io";
         const FOLDER_NAME = "covers";
-        
-        // Token de SOLO LECTURA creado en GitHub para autenticar la web y evitar el límite de IP
         const GITHUB_READ_TOKEN = "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";
 
         async function loadCovers() {
-            const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${REPO_NAME}/contents/${FOLDER_NAME}`;
+            // Usamos el endpoint de trees con recursive=1 para listar la carpeta de golpe sin bloqueos CORS de contenidos
+            const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${REPO_NAME}/git/trees/main?recursive=1`;
             const gallery = document.getElementById("gallery");
             const loading = document.getElementById("loading");
 
@@ -80,11 +79,13 @@
                 const response = await fetch(apiUrl, { headers });
                 if (!response.ok) throw new Error("No se pudo conectar con el repositorio.");
                 
-                const files = await response.json();
+                const data = await response.json();
                 
+                // Filtramos los archivos que estén dentro de la carpeta covers/
                 const imageExtensions = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
-                const images = files.filter(file => {
-                    const lowerName = file.name.toLowerCase();
+                const images = data.tree.filter(item => {
+                    if (!item.path.startsWith(FOLDER_NAME + "/")) return false;
+                    const lowerName = item.path.toLowerCase();
                     return imageExtensions.some(ext => lowerName.endsWith(ext));
                 });
 
@@ -95,16 +96,17 @@
                     return;
                 }
 
-                // Ordenar de más reciente a más antiguo mediante el timestamp del nombre
-                images.sort((a, b) => b.name.localeCompare(a.name));
+                // Ordenar de más reciente a más antiguo por nombre (gracias al timestamp)
+                images.sort((a, b) => b.path.localeCompare(a.path));
 
                 images.forEach(img => {
                     const itemDiv = document.createElement("div");
                     itemDiv.className = "gallery-item";
 
                     const imageElement = document.createElement("img");
-                    imageElement.src = img.download_url;
-                    imageElement.alt = img.name;
+                    // Construimos la URL Raw directamente
+                    imageElement.src = `https://raw.githubusercontent.com/${GITHUB_USER}/${REPO_NAME}/refs/heads/main/${img.path}`;
+                    imageElement.alt = img.path;
                     imageElement.loading = "lazy";
 
                     itemDiv.appendChild(imageElement);
@@ -112,7 +114,7 @@
                 });
 
             } catch (error) {
-                loading.textContent = "Error al cargar las imágenes: " + error.message;
+                loading.textContent = "Error al cargar la galería: " + error.message;
             }
         }
 
