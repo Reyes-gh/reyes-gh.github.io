@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Foobar Covers Gallery (Infinito sin Token)</title>
+    <title>Foobar Covers Gallery (HD)</title>
     <style>
         body {
             background-color: #121212;
@@ -12,18 +12,15 @@
             margin: 0;
             padding: 20px;
         }
-
         h1 {
             text-align: center;
             margin-bottom: 20px;
         }
-
         .gallery-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
             gap: 5px;
         }
-
         .gallery-item {
             position: relative;
             width: 100%;
@@ -31,7 +28,6 @@
             overflow: hidden;
             background-color: #1a1a1a;
         }
-
         .gallery-item img {
             width: 100%;
             height: 100%;
@@ -39,99 +35,84 @@
             display: block;
             transition: transform 0.2s ease;
         }
-
         .gallery-item img:hover {
             transform: scale(1.02);
         }
-
         #loading {
             text-align: center;
             font-size: 1.2rem;
             margin-top: 40px;
             color: #888;
         }
-
         @media (max-width: 520px) {
-            .gallery-grid {
-                grid-template-columns: 1fr;
-            }
-            .gallery-item {
-                height: auto;
-                aspect-ratio: 1 / 1;
-            }
+            .gallery-grid { grid-template-columns: 1fr; }
+            .gallery-item { height: auto; aspect-ratio: 1 / 1; }
         }
     </style>
 </head>
 <body>
 
     <h1>Foobar Covers Gallery</h1>
-    <div id="loading">Cargando carátulas ilimitadas...</div>
+    <div id="loading">Cargando carátulas...</div>
     <div class="gallery-grid" id="gallery"></div>
 
     <script>
         const GITHUB_USER = "Reyes-gh";
         const REPO_NAME = "reyes-gh.github.io";
         const FOLDER_NAME = "covers";
+        
+        // Token de SOLO LECTURA creado en GitHub para autenticar la web y evitar el límite de IP
+        const GITHUB_READ_TOKEN = "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";
 
         async function loadCovers() {
+            const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${REPO_NAME}/contents/${FOLDER_NAME}`;
             const gallery = document.getElementById("gallery");
             const loading = document.getElementById("loading");
 
-            // Usamos un servicio proxy CORS gratuito y público para leer el feed RSS de GitHub de forma anónima
-            const rssUrl = `https://github.com/${GITHUB_USER}/${REPO_NAME}/commits/main.atom`;
-            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`;
-
             try {
-                const response = await fetch(proxyUrl);
-                if (!response.ok) throw new Error("No se pudo conectar al feed de GitHub.");
-                
-                const data = await response.json();
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(data.contents, "text/xml");
-
-                // Buscamos todas las entradas (commits) del repositorio
-                const entries = xmlDoc.getElementsByTagName("entry");
-                const imageExtensions = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
-                const uniqueImages = new Set();
-
-                // Analizamos los mensajes de los commits para extraer los nombres de las imágenes subidas
-                for (let i = 0; i < entries.length; i++) {
-                    const title = entries[i].getElementsByTagName("title")[0]?.textContent || "";
-                    
-                    // Buscamos nombres de archivo válidos dentro del mensaje del commit (ej: "Upload cover nombre_123.jpg")
-                    const words = title.split(" ");
-                    for (let word of words) {
-                        const lowerWord = word.toLowerCase();
-                        if (imageExtensions.some(ext => lowerWord.endsWith(ext))) {
-                            uniqueImages.add(word);
-                        }
-                    }
+                const headers = {
+                    "Accept": "application/vnd.github+json"
+                };
+                if (GITHUB_READ_TOKEN) {
+                    headers["Authorization"] = `Bearer ${GITHUB_READ_TOKEN}`;
                 }
+
+                const response = await fetch(apiUrl, { headers });
+                if (!response.ok) throw new Error("No se pudo conectar con el repositorio.");
+                
+                const files = await response.json();
+                
+                const imageExtensions = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
+                const images = files.filter(file => {
+                    const lowerName = file.name.toLowerCase();
+                    return imageExtensions.some(ext => lowerName.endsWith(ext));
+                });
 
                 loading.style.display = "none";
 
-                if (uniqueImages.size === 0) {
-                    gallery.innerHTML = "<p style='text-align:center; grid-column: 1/-1;'>No se detectaron imágenes recientes en los commits.</p>";
+                if (images.length === 0) {
+                    gallery.innerHTML = "<p style='text-align:center; grid-column: 1/-1;'>No hay imágenes en la carpeta covers.</p>";
                     return;
                 }
 
-                // Creamos las tarjetas para cada imagen usando su enlace Raw directo
-                uniqueImages.forEach(imageName => {
+                // Ordenar de más reciente a más antiguo mediante el timestamp del nombre
+                images.sort((a, b) => b.name.localeCompare(a.name));
+
+                images.forEach(img => {
                     const itemDiv = document.createElement("div");
                     itemDiv.className = "gallery-item";
 
                     const imageElement = document.createElement("img");
-                    // Enlace Raw directo e inalterable
-                    imageElement.src = `https://raw.githubusercontent.com/${GITHUB_USER}/${REPO_NAME}/refs/heads/main/${FOLDER_NAME}/${imageName}`;
-                    imageElement.alt = imageName;
+                    imageElement.src = img.download_url;
+                    imageElement.alt = img.name;
                     imageElement.loading = "lazy";
 
                     itemDiv.appendChild(imageElement);
-                    gallery.appendChild(imageElement.src ? itemDiv : null);
+                    gallery.appendChild(itemDiv);
                 });
 
             } catch (error) {
-                loading.textContent = "Error al cargar la galería: " + error.message;
+                loading.textContent = "Error al cargar las imágenes: " + error.message;
             }
         }
 
