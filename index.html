@@ -1,1 +1,116 @@
-heya
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foobar Covers Gallery</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* Contenedor en Grid con separación exacta de 5px */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 5px;
+        }
+
+        .gallery-item {
+            position: relative;
+            aspect-ratio: 1 / 1;
+            overflow: hidden;
+            background-color: #222;
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.2s ease;
+        }
+
+        .gallery-item img:hover {
+            transform: scale(1.03);
+        }
+
+        #loading {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-top: 40px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Foobar Covers Gallery</h1>
+    <div id="loading">Cargando carátulas...</div>
+    <div class="gallery-grid" id="gallery"></div>
+
+    <script>
+        const GITHUB_USER = "Reyes-gh";
+        const REPO_NAME = "reyes-gh.github.io";
+        const FOLDER_NAME = "covers";
+
+        async function loadCovers() {
+            const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${REPO_NAME}/contents/${FOLDER_NAME}`;
+            const gallery = document.getElementById("gallery");
+            const loading = document.getElementById("loading");
+
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) throw new Error("No se pudo conectar con el repositorio.");
+                
+                const files = await response.json();
+                
+                // Filtrar solo archivos de imagen comunes
+                const imageExtensions = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
+                const images = files.filter(file => {
+                    const lowerName = file.name.toLowerCase();
+                    return imageExtensions.some(ext => lowerName.endsWith(ext));
+                });
+
+                loading.style.display = "none";
+
+                if (images.length === 0) {
+                    gallery.innerHTML = "<p style='text-align:center; grid-column: 1/-1;'>No hay imágenes en la carpeta covers.</p>";
+                    return;
+                }
+
+                // Ordenar de más reciente a más antiguo (si usas timestamp en el nombre)
+                images.sort((a, b) => b.name.localeCompare(a.name));
+
+                images.forEach(img => {
+                    const itemDiv = document.createElement("div");
+                    itemDiv.className = "gallery-item";
+
+                    const imageElement = document.createElement("img");
+                    imageElement.src = img.download_url; // Usa el raw link directo de GitHub
+                    imageElement.alt = img.name;
+                    imageElement.loading = "lazy"; // Carga perezosa para optimizar rendimiento
+
+                    itemDiv.appendChild(imageElement);
+                    gallery.appendChild(itemDiv);
+                });
+
+            } catch (error) {
+                loading.textContent = "Error al cargar las imágenes: " + error.message;
+            }
+        }
+
+        loadCovers();
+    </script>
+
+</body>
+</html>
