@@ -21,7 +21,7 @@ h1 {
     aspect-ratio: 1 / 1;
     position: relative;
     width: 100%;
-    max-width: 760px;
+    max-width: 1010px;
     overflow: hidden;
     background-color: #1a1a1a;
     cursor: pointer;
@@ -48,7 +48,8 @@ h1 {
 
 /* --- ESTILOS DEL VISOR (LIGHTBOX) --- */
 .lightbox {
-    display: none; /* Oculto por defecto */
+    display: none;
+    /* Oculto por defecto */
     position: fixed;
     z-index: 1000;
     left: 0;
@@ -58,12 +59,19 @@ h1 {
     background-color: rgba(0, 0, 0, 0.9);
     align-items: center;
     justify-content: center;
+
+    user-select: none;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -o-user-select: none;
 }
 
 .lightbox img {
-    max-height: 80vh; /* Ocupa el 80% del alto de la pantalla */
+    max-height: 80vh;
+    /* Ocupa el 80% del alto de la pantalla */
     max-width: 95vw;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     border-radius: 4px;
 }
 
@@ -87,16 +95,134 @@ h1 {
     .gallery-grid {
         grid-template-columns: 1fr;
     }
+
     .gallery-item {
         height: auto;
         aspect-ratio: 1 / 1;
     }
+
     .close-btn {
         right: 20px;
     }
 }
+
+/* =========================================
+   NUEVO: FADE IN AL CARGAR
+   ========================================= */
+#fade-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: black;
+    z-index: 9999;
+    animation: fadeOut 1.5s ease-in-out forwards;
+    pointer-events: none;
+    /* Crucial: para que se puedan hacer clics después de desvanecerse */
+}
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    100% {
+        opacity: 0;
+        visibility: hidden;
+    }
+}
+
+/* =========================================
+   NUEVO: SWITCH (INTERRUPTOR) ARRIBA A LA DERECHA
+   ========================================= */
+.toggle-container {
+    position: absolute;
+    /* Arriba del todo a la derecha */
+    top: 30px;
+    right: 30px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 100;
+}
+
+.toggle-label {
+    font-family: "Fira Code", monospace;
+    /* Usando tu fuente importada */
+    font-size: 14px;
+    color: #fff;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+    /* Por si hay carátulas debajo */
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #444;
+    transition: .4s;
+    border-radius: 24px;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked+.slider {
+    background-color: #2196F3;
+    /* Un azul molón, cámbialo si quieres otro color */
+}
+
+input:checked+.slider:before {
+    transform: translateX(26px);
+}
+
+/* Ajuste móvil para el interruptor */
+@media (max-width: 520px) {
+    .toggle-container {
+        top: 10px;
+        right: 10px;
+    }
+}
+
+html::-webkit-scrollbar {
+    display: none;
+}
+
+/* Ocultar la barra de scroll en Firefox */
+html {
+    scrollbar-width: none;
+}
+
 .pagetitle {
-  font-family: "Zen Dots", sans-serif;
-  font-weight: 400;
-  font-style: normal;
+    font-family: "Zen Dots", sans-serif;
+    font-weight: 400;
+    font-style: normal;
 }

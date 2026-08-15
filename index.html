@@ -4,12 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Zen+Dots&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">    
-    <title>Foobar Covers Gallery</title>    
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Zen+Dots&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">    
+    <title>Foobar Covers Gallery</title>
 </head>
 <body>
+
+    <!-- FADE IN NEGRO INICIAL -->
+    <div id="fade-overlay"></div>
+
+    <!-- SWITCH PARA EL AUTO-SCROLL -->    <div style="display: none;" class="toggle-container">
+        <span class="toggle-label">Auto-Scroll</span>
+        <label class="switch">
+            <input type="checkbox" id="scrollToggle">
+            <span class="slider round"></span>
+        </label>
+    </div>
 
     <h1 class="pagetitle">Foobar Covers Gallery</h1>
     <div id="loading">Cargando carátulas...</div>
@@ -26,57 +37,155 @@
         const REPO_NAME = "reyes-gh.github.io";
         const FOLDER_NAME = "covers";
 
-        // Referencias a los elementos del lightbox
+        // Variables de estado
+        let allCovers = []; // Guardará el array original para repetirlo infinitamente
+        let isScrollMode = false;
+        let autoScrollId;
+        let isLightboxOpen = false; // Para pausar el scroll si se abre una imagen
+
+        // LECTURA DE URL GET PARAMETER
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('scroll') === '1') {
+            isScrollMode = true;
+        }
+
+        // CONTROL DEL SWITCH
+        const toggleInput = document.getElementById('scrollToggle');
+        toggleInput.checked = isScrollMode;
+
+        toggleInput.addEventListener('change', (e) => {
+            isScrollMode = e.target.checked;
+            
+            // Actualizar la URL sin recargar la página (así es fácil de compartir)
+            const newUrl = new URL(window.location);
+            if (isScrollMode) {
+                newUrl.searchParams.set('scroll', '1');
+                startAutoScroll();
+            } else {
+                newUrl.searchParams.delete('scroll');
+                stopAutoScroll();
+            }
+            window.history.replaceState({}, '', newUrl);
+        });
+
+        // FUNCIONES DE AUTO SCROLL
+        // Variable para controlar la velocidad (cuanto mayor sea el número, más lento irá)
+        let scrollSpeedDivider = 3; // Prueba con 2 (medio), 3 (lento) o 4 (muy lento)
+        let frameCounter = 0;
+
+        function startAutoScroll() {
+            if (!isScrollMode || isLightboxOpen) return;
+            
+            frameCounter++;
+            // Solo hace scroll si el contador es múltiplo del divisor
+            if (frameCounter % scrollSpeedDivider === 0) {
+                window.scrollBy(0, 1); 
+            }
+            
+            autoScrollId = requestAnimationFrame(startAutoScroll);
+        }
+
+        function stopAutoScroll() {
+            cancelAnimationFrame(autoScrollId);
+        }
+
+        // LÓGICA DEL LIGHTBOX
         const lightbox = document.getElementById("lightbox");
         const lightboxImg = document.getElementById("lightbox-img");
         const closeBtn = document.getElementById("closeLightbox");
 
-        // Cerrar al hacer clic en la X
-        closeBtn.addEventListener("click", () => {
+        function closeLightbox() {
             lightbox.style.display = "none";
+            isLightboxOpen = false;
+            if (isScrollMode) startAutoScroll(); // Reanuda el scroll si estaba activo
+        }
+
+        closeBtn.addEventListener("click", closeLightbox);
+        lightbox.addEventListener("click", (e) => {
+            if (e.target === lightbox) closeLightbox();
         });
 
-        // Cerrar al hacer clic fuera de la imagen
-        lightbox.addEventListener("click", (e) => {
-            if (e.target === lightbox) {
-                lightbox.style.display = "none";
+        // FUNCIÓN QUE RENDERIZA LAS IMÁGENES
+        function renderBatch(imagesArray) {
+            const gallery = document.getElementById("gallery");
+            
+            imagesArray.forEach(filename => {
+                const itemDiv = document.createElement("div");
+                itemDiv.className = "gallery-item";
+
+                const imageElement = document.createElement("img");
+                imageElement.src = `https://raw.githubusercontent.com/${GITHUB_USER}/${REPO_NAME}/refs/heads/main/${FOLDER_NAME}/${filename}`;
+                imageElement.alt = filename;
+                imageElement.loading = "lazy"; // Vital para que el scroll infinito no colapse la red
+
+                itemDiv.addEventListener("click", () => {
+                    lightboxImg.src = imageElement.src;
+                    lightbox.style.display = "flex";
+                    isLightboxOpen = true;
+                    stopAutoScroll(); // Pausamos el scroll mientras vemos la foto
+                });
+
+                itemDiv.appendChild(imageElement);
+                gallery.appendChild(itemDiv);
+            });
+        }
+
+        // DETECTOR DE SCROLL (PARA RELLENAR INFINITAMENTE)
+        // Variable para controlar si ya estamos añadiendo
+        let isAdding = false;
+            
+        window.addEventListener('scroll', () => {
+            // Si ya estamos añadiendo o si el scroll es muy pequeño, salimos
+            if (isAdding) return;
+        
+            const threshold = 1500; 
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - threshold) {
+                isAdding = true; // Bloqueamos nuevas llamadas
+                
+                renderBatch(allCovers); // Inyecta el siguiente grupo
+                
+                // Limpiamos el inicio si el documento se vuelve demasiado largo
+                // Esto evita que el DOM crezca infinitamente
+                if (document.body.offsetHeight > 50000) { // Si pasa de 50.000px, eliminamos elementos viejos
+                     const gallery = document.getElementById("gallery");
+                     // Elimina los primeros 20 elementos que ya no se ven
+                     for(let i = 0; i < 20; i++) {
+                         if(gallery.firstChild) gallery.removeChild(gallery.firstChild);
+                     }
+                }
+            
+                setTimeout(() => { isAdding = false; }, 500); // Permitimos añadir de nuevo tras medio segundo
             }
         });
 
+        // FUNCIÓN PRINCIPAL DE CARGA
         async function loadCovers() {
-            const gallery = document.getElementById("gallery");
             const loading = document.getElementById("loading");
 
             try {
                 const response = await fetch(`images.json?t=${new Date().getTime()}`);
                 if (!response.ok) throw new Error("No se pudo cargar el archivo de índice.");
                 
-                const images = await response.json();
+                allCovers = await response.json();
                 loading.style.display = "none";
 
-                if (images.length === 0) {
-                    gallery.innerHTML = "<p style='text-align:center; grid-column: 1/-1;'>No hay imágenes disponibles.</p>";
+                if (allCovers.length === 0) {
+                    document.getElementById("gallery").innerHTML = "<p style='text-align:center; grid-column: 1/-1;'>No hay imágenes disponibles.</p>";
                     return;
                 }
 
-                images.forEach(filename => {
-                    const itemDiv = document.createElement("div");
-                    itemDiv.className = "gallery-item";
+                // Render inicial
+                renderBatch(allCovers);
 
-                    const imageElement = document.createElement("img");
-                    imageElement.src = `https://raw.githubusercontent.com/${GITHUB_USER}/${REPO_NAME}/refs/heads/main/${FOLDER_NAME}/${filename}`;
-                    imageElement.alt = filename;
-                    imageElement.loading = "lazy";
+                // Si hay tan pocas imágenes que no hay scrollbar, forzamos un segundo volcado inicial
+                if (document.body.offsetHeight < window.innerHeight * 1.5) {
+                    renderBatch(allCovers);
+                }
 
-                    // ABRIR LIGHTBOX AL HACER CLIC EN LA IMAGEN
-                    itemDiv.addEventListener("click", () => {
-                        lightboxImg.src = imageElement.src;
-                        lightbox.style.display = "flex";
-                    });
-
-                    itemDiv.appendChild(imageElement);
-                    gallery.appendChild(itemDiv);
-                });
+                // Si entramos con ?scroll=1 activado, empezamos
+                if (isScrollMode) {
+                    startAutoScroll();
+                }
 
             } catch (error) {
                 loading.textContent = "Error al cargar la galería: " + error.message;
