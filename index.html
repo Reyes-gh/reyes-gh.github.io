@@ -3,29 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Zen+Dots&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">    
-    <title>Foobar Covers Gallery</title>    
+    <title>Foobar Covers Gallery</title>
+    <!-- Enlace a tu archivo CSS externo -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <h1 class="pagetitle">Foobar Covers Gallery</h1>
+    <h1>Foobar Covers Gallery</h1>
     <div id="loading">Cargando carátulas...</div>
     <div class="gallery-grid" id="gallery"></div>
+
+    <!-- ESTRUCTURA DEL LIGHTBOX -->
+    <div id="lightbox" class="lightbox">
+        <span class="close-btn" id="closeLightbox">&times;</span>
+        <img id="lightbox-img" src="" alt="Carátula ampliada">
+    </div>
 
     <script>
         const GITHUB_USER = "Reyes-gh";
         const REPO_NAME = "reyes-gh.github.io";
         const FOLDER_NAME = "covers";
 
+        // Referencias a los elementos del lightbox
+        const lightbox = document.getElementById("lightbox");
+        const lightboxImg = document.getElementById("lightbox-img");
+        const closeBtn = document.getElementById("closeLightbox");
+
+        // Cerrar al hacer clic en la X
+        closeBtn.addEventListener("click", () => {
+            lightbox.style.display = "none";
+        });
+
+        // Cerrar al hacer clic fuera de la imagen
+        lightbox.addEventListener("click", (e) => {
+            if (e.target === lightbox) {
+                lightbox.style.display = "none";
+            }
+        });
+
         async function loadCovers() {
             const gallery = document.getElementById("gallery");
             const loading = document.getElementById("loading");
 
             try {
-                // El parámetro ?t=... evita que el navegador guarde en caché el JSON viejo
                 const response = await fetch(`images.json?t=${new Date().getTime()}`);
                 if (!response.ok) throw new Error("No se pudo cargar el archivo de índice.");
                 
@@ -42,10 +62,15 @@
                     itemDiv.className = "gallery-item";
 
                     const imageElement = document.createElement("img");
-                    // Construimos la URL Raw directa desde el nombre que está en el JSON
                     imageElement.src = `https://raw.githubusercontent.com/${GITHUB_USER}/${REPO_NAME}/refs/heads/main/${FOLDER_NAME}/${filename}`;
                     imageElement.alt = filename;
                     imageElement.loading = "lazy";
+
+                    // ABRIR LIGHTBOX AL HACER CLIC EN LA IMAGEN
+                    itemDiv.addEventListener("click", () => {
+                        lightboxImg.src = imageElement.src;
+                        lightbox.style.display = "flex";
+                    });
 
                     itemDiv.appendChild(imageElement);
                     gallery.appendChild(itemDiv);
