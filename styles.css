@@ -20,7 +20,7 @@ h1 {
 .gallery-item {
     position: relative;
     width: 100%;
-    height: 500px;
+    height: 100%;
     overflow: hidden;
     background-color: #1a1a1a;
     cursor: pointer; /* Cursor de mano para indicar que es clicable */
