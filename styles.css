@@ -18,12 +18,13 @@ h1 {
 }
 
 .gallery-item {
+    aspect-ratio: 1 / 1;
     position: relative;
     width: 100%;
-    height: 100%;
+    max-width: 760px;
     overflow: hidden;
     background-color: #1a1a1a;
-    cursor: pointer; /* Cursor de mano para indicar que es clicable */
+    cursor: pointer;
 }
 
 .gallery-item img {
