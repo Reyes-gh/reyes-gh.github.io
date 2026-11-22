@@ -856,7 +856,7 @@
   function baitLine(id) {
     const B = baitIndex();
     const baits = B.fish.get(id), fish = B.lure.get(id);
-    if (baits) return `<div class="bait-line">${icon('cyan-icon bait-icon')}<b>Optimal bait:</b><span class="chips">${baits.map((b) => item(b)).join('')}</span></div>`;
+    if (baits) return `<div class="bait-line">${icon('cyan-icon bait-icon')}<b>Optimal bait:</b><span class="chips">${baits.map((b) => item(b)).join('')}</span><span class="muted">only fish it attracts will bite · chance per fishing spot in Gathering below</span></div>`;
     if (fish && fish.length) return `<div class="bait-line">${icon('gray-icon fish-icon')}<b>Attracts:</b><span class="chips">${fish.map((f) => item(f)).join('')}</span></div>`;
     return '';
   }
@@ -885,6 +885,19 @@
       ${it.f && it.f.includes('descriptionInaccurate') ? '<p class="note">The in-game description is inaccurate.</p>' : ''}
       ${baitLine(id)}
     </section>`);
+
+    /* special bait: the fishing spots where the fish it attracts show up, with their chance per season */
+    const lured = baitIndex().lure.get(id);
+    if (lured && lured.length) {
+      const rows = lured.flatMap((f) => R.gather(f).filter((r) => /fish-icon/.test(r[8])).map((r) => [f, r]))
+        .sort((a, b) => a[1][0].localeCompare(b[1][0]) || RANK_ORDER(a[1][2]) - RANK_ORDER(b[1][2]) || a[0] - b[0]);
+      out.push(section(`${icon('gray-icon fish-icon')} Where to fish with it <small>釣り場</small><span class="count">${rows.length} spots</span>`,
+        `<p class="muted">Chance of each fish at the fishing spot (the spot's own table: the bait only decides which fish bite).</p><div class="tbl-wrap tall">${table(
+        [{ h: 'Fish', f: ([f]) => item(f) }, { h: 'Map', f: ([, r]) => `<a href="#/maps/${MH2.slug(r[0])}">${esc(L(r[0], r[1]))}</a>` },
+         { h: 'Rank', f: ([, r]) => esc(L(r[2], r[3])) }, { h: 'Area', f: ([, r]) => esc(L(r[4], r[5])) },
+         { h: '<span class="season-summer">Warm</span>', cls: 'n', f: ([, r]) => esc(r[10]) }, { h: '<span class="season-winter">Cold</span>', cls: 'n', f: ([, r]) => esc(r[11]) },
+         { h: '<span class="season-breeding">Breeding</span>', cls: 'n', f: ([, r]) => esc(r[12]) }], rows).replace('<div class="tbl-wrap">', '').replace(/<\/div>$/, '')}</div>`));
+    }
 
     /* shops */
     const shops = D.shops[id];
