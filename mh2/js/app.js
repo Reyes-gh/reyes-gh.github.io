@@ -830,11 +830,36 @@
     }
     return maka;
   }
+  /* fishing bait: the special baits' notes name the fish they attract ("Attract Pin Tuna and Speartuna to your fishing lure") */
+  let bait;
+  function baitIndex() {
+    if (bait) return bait;
+    bait = { fish: new Map(), lure: new Map() };
+    const items = MH2.data.core.items;
+    const byName = new Map(items.map((x, i) => [x && x.n, i]));
+    items.forEach((x, i) => {
+      const m = x && /bait-icon/.test(x.i) && /Attr?act (.+?) to your fishing lure/i.exec(x.x || '');
+      if (!m) return;
+      const fish = m[1].split(/\s*(?:,|\band\b)\s*/).map((n) => byName.get(n.trim())).filter((f) => f != null);
+      bait.lure.set(i, fish);
+      fish.forEach((f) => bait.fish.set(f, [...(bait.fish.get(f) || []), i]));
+    });
+    return bait;
+  }
   const smoke = (t) => `<span class="nw maka-t">${icon(`${MAKA_TIMES[t][1]}-icon smoke-icon`)} ${MAKA_TIMES[t][0]}</span>`;
 
   const RANK_ORDER = (r) => ['Village', 'Village/Low Rank', 'Low Rank', 'Dojo', 'High Rank'].indexOf(r);
   const KIND = { carve: 'Carve', capture: 'Capture', break: 'Break' };
   const STAGE = { forge: 'Forge', upgrade: 'Upgrade', forgePSP: 'Forge (PSP)', ticketForge: 'Ticket forge' };
+
+  /** "Optimal bait" on a fish that a special bait attracts, "Attracts" on that bait. */
+  function baitLine(id) {
+    const B = baitIndex();
+    const baits = B.fish.get(id), fish = B.lure.get(id);
+    if (baits) return `<div class="bait-line">${icon('cyan-icon bait-icon')}<b>Optimal bait:</b><span class="chips">${baits.map((b) => item(b)).join('')}</span></div>`;
+    if (fish && fish.length) return `<div class="bait-line">${icon('gray-icon fish-icon')}<b>Attracts:</b><span class="chips">${fish.map((f) => item(f)).join('')}</span></div>`;
+    return '';
+  }
 
   MH2.views.item = async function ([idStr]) {
     await MH2.need('itemrel', 'extras');
@@ -858,6 +883,7 @@
       ${it.d ? `<p class="desc">${MH2.rich(it.d)}</p>` : ''}${it.dj ? `<p class="desc jp">${esc(it.dj)}</p>` : ''}
       ${it.x ? `<div class="note">${MH2.rich(it.x)}</div>` : ''}${it.a ? `<p class="note"><b>How to get it:</b> ${MH2.rich(it.a)}</p>` : ''}
       ${it.f && it.f.includes('descriptionInaccurate') ? '<p class="note">The in-game description is inaccurate.</p>' : ''}
+      ${baitLine(id)}
     </section>`);
 
     /* shops */

@@ -1041,3 +1041,7 @@ html.no-jp .mon-card small, html.no-jp .sr-name small, html.no-jp .desc.jp, html
 .src-note { margin: 0; font-size: .82rem; }
 .maka-ts { display: flex; flex-wrap: wrap; gap: .3rem .8rem; }
 .maka-t > [class*="-icon"] { zoom: .7; }
+.bait-line { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .5rem; margin-top: .6rem; padding: .45rem .6rem; border-radius: 4px;
+  background: rgba(0, 0, 0, .25); border-left: 3px solid var(--cursor); }
+.bait-line > [class*="-icon"] { zoom: .6; flex: none; }
+.bait-line b { color: var(--gold-hi); font-family: var(--head); }
