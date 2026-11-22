@@ -623,7 +623,6 @@
         <div>
           <h1 class="title">Hunter's Guide</h1>
           <div class="jp-sub">モンスターハンター２ ドス · 解析情報</div>
-          <p>All the MH Oldschool Wiki data, reorganized and running locally: search anything with <b>/</b>, follow the links between items, monsters, quests and equipment, and switch game names between English and Japanese with the button in the sidebar.</p>
           <div class="hero-meta">
             <span class="stat"><small>Items</small><b>${counts.i}</b></span>
             <span class="stat"><small>Monsters</small><b>${counts.m}</b></span>
