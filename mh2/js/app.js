@@ -834,15 +834,27 @@
   let bait;
   function baitIndex() {
     if (bait) return bait;
-    bait = { fish: new Map(), lure: new Map() };
+    bait = { fish: new Map(), lure: new Map(), any: [] };
     const items = MH2.data.core.items;
     const byName = new Map(items.map((x, i) => [x && x.n, i]));
+    // plain baits (Worm, Cricket, Firefly, Frog) and the Mega Fishing Fly: any fish at the spot can bite
+    items.forEach((x, i) => { if (x && /bait-icon/.test(x.i) && (/no special properties|used to fish/i.test(x.x || '') || /any fish/i.test(x.d || ''))) bait.any.push(i); });
     items.forEach((x, i) => {
       const m = x && /bait-icon/.test(x.i) && /Attr?act (.+?) to your fishing lure/i.exec(x.x || '');
       if (!m) return;
       const fish = m[1].split(/\s*(?:,|\band\b)\s*/).map((n) => byName.get(n.trim())).filter((f) => f != null);
       bait.lure.set(i, fish);
       fish.forEach((f) => bait.fish.set(f, [...(bait.fish.get(f) || []), i]));
+    });
+    // "Great" fish bite on their base fish's bait (Great Pin Tuna → Tuna Bait; Great Arowana → Arowana Bait)
+    items.forEach((x, i) => {
+      const g = x && /fish-icon/.test(x.i) && /^Great (.+)$/.exec(x.n);
+      if (!g || bait.fish.has(i)) return;
+      const base = byName.get(g[1]);
+      const baits = (base != null && bait.fish.get(base)) || [...bait.lure.keys()].filter((b) => items[b].n.startsWith(g[1] + ' '));
+      if (!baits.length) return;
+      bait.fish.set(i, baits);
+      baits.forEach((b) => bait.lure.get(b).push(i));
     });
     return bait;
   }
@@ -852,13 +864,21 @@
   const KIND = { carve: 'Carve', capture: 'Capture', break: 'Break' };
   const STAGE = { forge: 'Forge', upgrade: 'Upgrade', forgePSP: 'Forge (PSP)', ticketForge: 'Ticket forge' };
 
-  /** "Optimal bait" on a fish that a special bait attracts, "Attracts" on that bait. */
-  function baitLine(id) {
+  /**
+   * Bait for anything caught at a fishing spot: the special bait that targets it (only those fish bite) and the
+   * plain baits any fish takes. On a bait's own page: the fish it attracts, or that it works on any fish.
+   */
+  function baitLine(id, R) {
     const B = baitIndex();
+    const chips = (ids) => `<span class="chips">${ids.map((b) => item(b)).join('')}</span>`;
+    const line = (ic, label, body, note) => `<div class="bait-line">${icon(ic)}<b>${label}</b>${body}${note ? `<span class="muted">${note}</span>` : ''}</div>`;
     const baits = B.fish.get(id), fish = B.lure.get(id);
-    if (baits) return `<div class="bait-line">${icon('cyan-icon bait-icon')}<b>Optimal bait:</b><span class="chips">${baits.map((b) => item(b)).join('')}</span><span class="muted">only fish it attracts will bite · chance per fishing spot in Gathering below</span></div>`;
-    if (fish && fish.length) return `<div class="bait-line">${icon('gray-icon fish-icon')}<b>Attracts:</b><span class="chips">${fish.map((f) => item(f)).join('')}</span></div>`;
-    return '';
+    if (fish && fish.length) return line('gray-icon fish-icon', 'Attracts:', chips(fish), 'only these fish bite on it');
+    if (B.any.includes(id)) return line('gray-icon fish-icon', 'Catches:', '<span>any fish at a fishing spot</span>');
+    const fished = R.gather(id).some((r) => /fish-icon/.test(r[8]));
+    if (!baits && !fished) return '';
+    return (baits ? line('cyan-icon bait-icon', 'Optimal bait:', chips(baits), 'only the fish it attracts bite') : '') +
+      line('gray-icon bait-icon', baits ? 'Also with:' : 'Bait:', chips(B.any), (baits ? 'any fish can bite' : 'no special bait targets it · any bait works') + ' · chance per fishing spot in Gathering below');
   }
 
   MH2.views.item = async function ([idStr]) {
@@ -883,7 +903,7 @@
       ${it.d ? `<p class="desc">${MH2.rich(it.d)}</p>` : ''}${it.dj ? `<p class="desc jp">${esc(it.dj)}</p>` : ''}
       ${it.x ? `<div class="note">${MH2.rich(it.x)}</div>` : ''}${it.a ? `<p class="note"><b>How to get it:</b> ${MH2.rich(it.a)}</p>` : ''}
       ${it.f && it.f.includes('descriptionInaccurate') ? '<p class="note">The in-game description is inaccurate.</p>' : ''}
-      ${baitLine(id)}
+      ${baitLine(id, R)}
     </section>`);
 
     /* special bait: the fishing spots where the fish it attracts show up, with their chance per season */
