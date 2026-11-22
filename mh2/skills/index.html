@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.head.prepend(Object.assign(document.createElement("base"), { href: new URL("../", location.href).href }));</script>
 <title>Skills · MH2 Hunter's Guide</title>
 <meta name="description" content="Armor skills, the points needed to activate them and every piece of equipment that gives them.">
 <link rel="canonical" href="https://reyes-gh.github.io/mh2/skills/">
@@ -22,11 +23,10 @@
 <meta name="twitter:title" content="Skills · MH2 Hunter's Guide">
 <meta name="twitter:description" content="Armor skills, the points needed to activate them and every piece of equipment that gives them.">
 <meta name="twitter:image" content="https://reyes-gh.github.io/mh2/img/og/skills.png">
-<link rel="icon" href="../img/mh2/logo.png">
-<meta http-equiv="refresh" content="0; url=../#/skills">
-<script>location.replace('../' + (location.hash.length > 2 ? location.hash : '#/skills'));</script>
+<link rel="icon" href="img/mh2/logo.png">
+<script>document.write('<script src="' + document.baseURI + 'boot.js"><\/script>');</script>
 </head>
-<body style="background:#0e0906;color:#efe3c6;font-family:sans-serif">
-<p><a href="../#/skills" style="color:#f2902e">Skills · MH2 Hunter's Guide</a></p>
+<body>
+<script>MH2BOOT();</script>
 </body>
 </html>

@@ -27,6 +27,10 @@ AddType font/ttf .ttf
   <FilesMatch "\.html$">
     Header set Cache-Control "no-cache"
   </FilesMatch>
+  # boot.js has no ?v= stamp (the per-route pages never change): always revalidate it
+  <Files "boot.js">
+    Header set Cache-Control "no-cache"
+  </Files>
 </IfModule>
 
 # The SQLite copy of the data is for tools, not for the browser.

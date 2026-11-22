@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.head.prepend(Object.assign(document.createElement("base"), { href: new URL("../", location.href).href }));</script>
 <title>Maps · MH2 Hunter's Guide</title>
 <meta name="description" content="Every area map with its gathering points, and what each spot gives by rank and season.">
 <link rel="canonical" href="https://reyes-gh.github.io/mh2/maps/">
@@ -22,11 +23,10 @@
 <meta name="twitter:title" content="Maps · MH2 Hunter's Guide">
 <meta name="twitter:description" content="Every area map with its gathering points, and what each spot gives by rank and season.">
 <meta name="twitter:image" content="https://reyes-gh.github.io/mh2/img/og/maps.png">
-<link rel="icon" href="../img/mh2/logo.png">
-<meta http-equiv="refresh" content="0; url=../#/maps">
-<script>location.replace('../' + (location.hash.length > 2 ? location.hash : '#/maps'));</script>
+<link rel="icon" href="img/mh2/logo.png">
+<script>document.write('<script src="' + document.baseURI + 'boot.js"><\/script>');</script>
 </head>
-<body style="background:#0e0906;color:#efe3c6;font-family:sans-serif">
-<p><a href="../#/maps" style="color:#f2902e">Maps · MH2 Hunter's Guide</a></p>
+<body>
+<script>MH2BOOT();</script>
 </body>
 </html>

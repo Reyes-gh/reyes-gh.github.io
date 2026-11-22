@@ -290,11 +290,52 @@
     ).join('');
   }
 
-  /* ---------- router ---------- */
+  /* ---------- router ----------
+   * Pages live at real paths under the site folder (/mh2/item/190), so a shared link is a normal URL that link
+   * previews (Discord…) can read; every route has a small static page with its own meta tags (tools/og.py).
+   * The views still write links as "#/item/190": they are turned into "item/190" (resolved against <base>) as
+   * they reach the page, and clicks on them navigate with history.pushState. Opened as a file, it stays on #/ routes.
+   */
+  MH2.hashMode = location.protocol === 'file:';
+  MH2.base = document.baseURI.replace(/[?#].*$/, '').replace(/[^/]*$/, ''); // the site folder, set by <base> in each page
+  const basePath = new URL(MH2.base).pathname;
   MH2.route = () =>
-    decodeURIComponent(location.hash.replace(/^#\/?/, ''))
+    decodeURIComponent(MH2.hashMode ? location.hash.replace(/^#\/?/, '') : location.pathname.slice(basePath.length).replace(/^\/+/, ''))
       .split('/')
       .filter((x, i) => x || i === 0);
+  /** "#/item/190" → "item/190" (home "#/" → "./"); unchanged when opened as a file. */
+  MH2.href = (h) => (MH2.hashMode ? h : h === '#/' ? './' : h.slice(2));
+  const HASH_HREF = /href="#\/([^"]*)"/g;
+  MH2.fixLinks = (html) => (MH2.hashMode ? html : html.replace(HASH_HREF, (m, r) => `href="${r || './'}"`));
+  const fixLinksIn = (root) => {
+    if (root.nodeType !== 1) return;
+    if (root.matches('a[href^="#/"]')) root.setAttribute('href', MH2.href(root.getAttribute('href')));
+    root.querySelectorAll('a[href^="#/"]').forEach((a) => a.setAttribute('href', MH2.href(a.getAttribute('href'))));
+  };
+  /** Opens a route ("item/190", "#/item/190" or a full URL inside the site) without reloading. */
+  MH2.go = function (to, replace) {
+    if (MH2.hashMode) { location.hash = to.startsWith('#') ? to : '#/' + to; return; }
+    const url = new URL(to.startsWith('#/') ? MH2.href(to) : to, MH2.base).href;
+    if (url !== location.href) history[replace ? 'replaceState' : 'pushState'](null, '', url);
+    render();
+  };
+  function routerEvents() {
+    if (MH2.hashMode) { window.addEventListener('hashchange', render); return; }
+    // links shared in the old form (/mh2/#/item/190) still work and get the clean address
+    if (/^#\//.test(location.hash)) history.replaceState(null, '', new URL(MH2.href(decodeURIComponent(location.hash)), MH2.base).href);
+    window.addEventListener('popstate', render);
+    fixLinksIn(document.body);
+    // links added outside the main view (nav, search results, lists redrawn by a view, tooltips)
+    new MutationObserver((muts) => muts.forEach((m) => m.addedNodes.forEach(fixLinksIn))).observe(document.body, { childList: true, subtree: true });
+    document.addEventListener('click', (e) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const a = e.target.closest('a[href]');
+      if (!a || a.target || a.hasAttribute('download') || a.origin !== location.origin) return;
+      if (!a.pathname.startsWith(basePath) || /\.[a-z0-9]+$/i.test(a.pathname)) return; // files (images, data) open normally
+      e.preventDefault();
+      MH2.go(a.href);
+    });
+  }
   let renderSeq = 0;
   async function render() {
     const route = MH2.route();
@@ -303,6 +344,7 @@
     const name = route[0] || 'home';
     const view = MH2.views[name] || MH2.views.notfound;
     const el = document.getElementById('view');
+    window.dispatchEvent(new Event('mh2:navigate'));
     const seq = ++renderSeq;
     // the page dims only when it actually has to wait (a data pack still loading): an instant switch does not flash,
     // and the whole view is not turned into a fading GPU layer and re-rasterized twice on every click
@@ -313,10 +355,15 @@
       const html = await view(route.slice(1), el);
       MH2.navigating = false;
       if (seq !== renderSeq) return; // the user already navigated elsewhere
-      if (typeof html === 'string') el.innerHTML = html;
+      if (typeof html === 'string') el.innerHTML = MH2.fixLinks(html);
       if (!MH2.keepScroll) window.scrollTo(0, 0);
       MH2.keepScroll = false;
       if (view.after) view.after(route.slice(1), el);
+      // tab title from the page heading (the per-route pages start with it; keep it right while browsing)
+      const h = name === 'home' ? null : el.querySelector('h1, h2');
+      let t = '';
+      if (h) { const c = h.cloneNode(true); c.querySelectorAll('small, .jp, .more, a').forEach((x) => x.remove()); t = c.textContent.replace(/\s+/g, ' ').trim(); }
+      document.title = t ? `${t} · MH2 Hunter's Guide` : "MH2 Hunter's Guide · Monster Hunter 2 Dos";
       MH2.enhanceSelects(el);
     } catch (e) {
       console.error(e);
@@ -434,7 +481,7 @@
     input.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowDown') { sel = Math.min(sel + 1, list.length - 1); draw(); e.preventDefault(); }
       else if (e.key === 'ArrowUp') { sel = Math.max(sel - 1, 0); draw(); e.preventDefault(); }
-      else if (e.key === 'Enter' && list[sel]) { location.hash = TYPE[list[sel][0]][1](list[sel]); close(); }
+      else if (e.key === 'Enter' && list[sel]) { MH2.go(TYPE[list[sel][0]][1](list[sel])); close(); }
       else if (e.key === 'Escape') close();
     });
     const close = () => { box.hidden = true; input.blur(); };
@@ -547,7 +594,7 @@
     });
     document.getElementById('menuBtn').addEventListener('click', () => document.body.classList.toggle('nav-open'));
     setupSearch();
-    window.addEventListener('hashchange', render);
+    routerEvents();
     scrollShield();
     render().then(prefetch);
   };
@@ -1717,7 +1764,7 @@
     pin.classList.add('on');
   };
   function hideTip() { if (tip) tip.style.display = 'none'; document.querySelectorAll('.map-pin.on').forEach((p) => p.classList.remove('on')); }
-  window.addEventListener('hashchange', hideTip);
+  window.addEventListener('mh2:navigate', hideTip);
   document.addEventListener('scroll', hideTip, { passive: true, capture: true });
   MH2.views.maps.after = function () {
     hideTip();

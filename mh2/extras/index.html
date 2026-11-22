@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.head.prepend(Object.assign(document.createElement("base"), { href: new URL("../", location.href).href }));</script>
 <title>Miscellany · MH2 Hunter's Guide</title>
 <meta name="description" content="Item combinations, Maka recipes, Veggie Elder trades, villager requests, hunter titles, seasons and more.">
 <link rel="canonical" href="https://reyes-gh.github.io/mh2/extras/">
@@ -22,11 +23,10 @@
 <meta name="twitter:title" content="Miscellany · MH2 Hunter's Guide">
 <meta name="twitter:description" content="Item combinations, Maka recipes, Veggie Elder trades, villager requests, hunter titles, seasons and more.">
 <meta name="twitter:image" content="https://reyes-gh.github.io/mh2/img/og/extras.png">
-<link rel="icon" href="../img/mh2/logo.png">
-<meta http-equiv="refresh" content="0; url=../#/extras">
-<script>location.replace('../' + (location.hash.length > 2 ? location.hash : '#/extras'));</script>
+<link rel="icon" href="img/mh2/logo.png">
+<script>document.write('<script src="' + document.baseURI + 'boot.js"><\/script>');</script>
 </head>
-<body style="background:#0e0906;color:#efe3c6;font-family:sans-serif">
-<p><a href="../#/extras" style="color:#f2902e">Miscellany · MH2 Hunter's Guide</a></p>
+<body>
+<script>MH2BOOT();</script>
 </body>
 </html>

@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.head.prepend(Object.assign(document.createElement("base"), { href: new URL("../", location.href).href }));</script>
 <title>Weapons · MH2 Hunter's Guide</title>
 <meta name="description" content="All weapon trees: attack, sharpness, element, slots, upgrade paths and the materials to forge each one.">
 <link rel="canonical" href="https://reyes-gh.github.io/mh2/weapons/">
@@ -22,11 +23,10 @@
 <meta name="twitter:title" content="Weapons · MH2 Hunter's Guide">
 <meta name="twitter:description" content="All weapon trees: attack, sharpness, element, slots, upgrade paths and the materials to forge each one.">
 <meta name="twitter:image" content="https://reyes-gh.github.io/mh2/img/og/weapons.png">
-<link rel="icon" href="../img/mh2/logo.png">
-<meta http-equiv="refresh" content="0; url=../#/weapons">
-<script>location.replace('../' + (location.hash.length > 2 ? location.hash : '#/weapons'));</script>
+<link rel="icon" href="img/mh2/logo.png">
+<script>document.write('<script src="' + document.baseURI + 'boot.js"><\/script>');</script>
 </head>
-<body style="background:#0e0906;color:#efe3c6;font-family:sans-serif">
-<p><a href="../#/weapons" style="color:#f2902e">Weapons · MH2 Hunter's Guide</a></p>
+<body>
+<script>MH2BOOT();</script>
 </body>
 </html>
