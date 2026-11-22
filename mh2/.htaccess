@@ -1,0 +1,43 @@
+# Apache (XAMPP) delivery tuning for the MH2 wiki. Every block is optional: a missing module is simply skipped.
+
+# Text compresses 5-10x (the 1.5 MB data packs travel as ~150-250 KB).
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json image/svg+xml font/ttf application/font-sfnt
+</IfModule>
+
+AddType font/ttf .ttf
+
+# CSS, JS and data packs are requested with a ?v= stamp that changes whenever they do, so they can be cached
+# for a year; index.html is always revalidated so a new stamp is seen right away. Images change rarely.
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/html "access"
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType text/javascript "access plus 1 year"
+  ExpiresByType font/ttf "access plus 1 year"
+  ExpiresByType image/png "access plus 30 days"
+  ExpiresByType image/gif "access plus 30 days"
+  ExpiresByType image/svg+xml "access plus 30 days"
+</IfModule>
+<IfModule mod_headers.c>
+  <FilesMatch "\.(css|js|ttf)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>
+
+# The SQLite copy of the data is for tools, not for the browser.
+<IfModule mod_authz_core.c>
+  <Files "mh2.db">
+    Require all denied
+  </Files>
+</IfModule>
+
+# Only the site is served: the source dumps and build tools next to it are not.
+<IfModule mod_alias.c>
+  RedirectMatch 404 /monhundos/(raw|tools)(/|$)
+  RedirectMatch 404 /monhundos/README\.md$
+</IfModule>

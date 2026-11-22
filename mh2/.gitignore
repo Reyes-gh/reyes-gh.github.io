@@ -1,0 +1,26 @@
+# Only what the browser loads is published (index.html, css/site.css, js/app.js, data/, fonts/, img/).
+
+# source dumps, build tools, SQLite copy, docs
+/raw/
+/tools/
+/mh2.db
+/README.md
+
+# CSS/JS sources: the page loads the bundles made by tools/bundle.py (css/site.css, js/app.js)
+/css/*
+!/css/site.css
+/js/*
+!/js/app.js
+
+# font and images nothing references
+/fonts/Lato-BoldItalic.ttf
+/img/common/arrow_down.png
+/img/common/arrow_right.png
+/img/common/spyglass.svg
+/img/common/background/herringbone.gif
+/img/common/background/monster_frame.png
+/img/common/cursors/mystery_weapon.png
+/img/mh2/bow_range_chart.png
+/img/mh2/menu_bg.gif
+/img/mh2/normal_shot_range_chart.png
+/img/mh2/pierce_shot_range_chart.png

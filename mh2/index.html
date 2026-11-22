@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MH2 Hunter's Guide · Monster Hunter 2 Dos</title>
+<link rel="icon" href="img/mh2/logo.png">
+<script>if (location.protocol !== "file:") for (const f of ["fonts/Lato-Regular.ttf", "fonts/Lato-Bold.ttf"]) document.head.appendChild(Object.assign(document.createElement("link"), { rel: "preload", as: "font", type: "font/ttf", crossOrigin: "anonymous", href: f }));</script>
+<link rel="stylesheet" href="css/site.css?v=99f014d498">
+</head>
+<body>
+<div class="app">
+  <aside class="side" id="side">
+    <a class="brand" href="#/" title="Home">
+      <img class="brand-logo" src="img/mh2/logo.png" alt="Monster Hunter 2 Dos">
+      <small class="brand-sub">Hunter's Guide<span class="jp"> · 解析情報</span></small>
+    </a>
+    <nav class="nav" id="nav"></nav>
+    <div class="side-foot">
+      <div class="lang" id="lang" role="group" aria-label="Language"></div>
+      <p>Data: <a href="https://wiki.mholdschool.com/mh2/" target="_blank" rel="noopener">MH Oldschool Wiki</a></p>
+    </div>
+  </aside>
+  <div class="main">
+    <header class="top">
+      <button class="menu-btn" id="menuBtn" type="button" aria-label="Menu">☰</button>
+      <div class="search">
+        <input id="q" type="search" autocomplete="off" spellcheck="false" placeholder="Search items, monsters, weapons, armor, quests…  ( / )">
+        <div class="search-results" id="results" hidden></div>
+      </div>
+    </header>
+    <main id="view" class="view" tabindex="-1"></main>
+  </div>
+</div>
+<script src="js/app.js?v=e1249782ea"></script>
+<script>MH2.start();</script>
+</body>
+</html>
