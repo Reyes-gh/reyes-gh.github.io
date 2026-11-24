@@ -801,7 +801,9 @@
 
   /* ---------- item page ---------- */
   /* zone / rank filter for the "how to get it" sections; kept while browsing from item to item */
-  const pageFilter = { zone: '', rank: '' };
+  const pageFilter = { zone: '', rank: '', town: '', qsort: 'chance' };
+  const TOWN_ICON = { jumbo: 'green-icon house-icon', dundorma: 'orange-icon house-icon' };
+  const QSORTS = [['chance', 'Chance'], ['stars-desc', '★ High → Low'], ['stars-asc', '★ Low → High']];
   const RANKS = [['', 'Any rank'], ['low', 'Low Rank'], ['high', 'High Rank'], ['dojo', 'Dojo']];
   const ZONE_COLOR = { 'Forest & Hills': 'green', Jungle: 'green', Desert: 'orange', Swamp: 'purple', 'Snowy Mountain': 'blue', Volcano: 'red', 'The Tower': 'cyan' };
   const rankKey = (s) => (/dojo/i.test(s) ? 'dojo' : /high/i.test(s) ? 'high' : 'low');
@@ -993,9 +995,22 @@
     /* quests */
     const qi = R.qItems.get(id) || [];
     const qName = (k) => { const q = D.questNames[k]; return `<a class="nw" href="#/quest/${esc(q[0])}"><span class="pct">${'★'.repeat(q[3] || 0)}</span> ${esc(L(q[1], q[2]))}</a>`; };
-    const rewards = qi.filter((x) => x[1] === 'reward' && (!rf || questRank(D.questNames[x[0]]) === rf)).sort((a, b) => (b[5] || 0) - (a[5] || 0));
+    const rwAll = qi.filter((x) => x[1] === 'reward' && (!rf || questRank(D.questNames[x[0]]) === rf));
+    const townN = { jumbo: 0, dundorma: 0 };
+    rwAll.forEach((x) => townN[D.questNames[x[0]][4]]++);
+    if (pageFilter.town && !townN[pageFilter.town]) pageFilter.town = '';
+    const tf = pageFilter.town, qs = pageFilter.qsort;
+    const stars = (x) => D.questNames[x[0]][3] || 0, chance = (x) => x[5] || 0;
+    const rewards = rwAll.filter((x) => !tf || D.questNames[x[0]][4] === tf).sort(
+      qs === 'stars-desc' ? (a, b) => stars(b) - stars(a) || chance(b) - chance(a)
+      : qs === 'stars-asc' ? (a, b) => stars(a) - stars(b) || chance(b) - chance(a)
+      : (a, b) => chance(b) - chance(a) || stars(b) - stars(a));
     const supplies = qi.filter((x) => x[1] === 'supply');
-    if (rewards.length) out.push(section(`Quest Rewards <small>報酬</small><span class="count">${rewards.length}</span>`, `<div class="tbl-wrap tall">${table(
+    if (rwAll.length) out.push(section(`Quest Rewards <small>報酬</small><span class="count">${rewards.length}</span>`, `<div class="q-tools">
+        <div class="src-row"><span class="src-lbl">Town</span><div class="src-opts towns">${[['', 'Both towns', 'white-icon house-icon', rwAll.length], ['jumbo', 'Jumbo Village', TOWN_ICON.jumbo, townN.jumbo], ['dundorma', 'Dundorma', TOWN_ICON.dundorma, townN.dundorma]]
+          .map(([k, t, ic, n]) => `<button class="pill${tf === k ? ' on' : ''}" data-ftown="${k}"${k && !n ? ' disabled' : ''}>${icon(ic)}<span class="tab-label">${t}</span><small>${n}</small></button>`).join('')}</div></div>
+        <div class="src-row"><span class="src-lbl">Sort</span><div class="src-opts sorts">${QSORTS.map(([k, t]) => `<button class="pill${qs === k ? ' on' : ''}" data-qsort="${k}">${t}</button>`).join('')}</div></div>
+      </div><div class="tbl-wrap tall">${table(
       [{ h: 'Quest', f: (q) => qName(q[0]) }, { h: 'Location', f: (q) => esc(D.questNames[q[0]][4] === 'jumbo' ? 'Jumbo' : 'Dundorma') + ' · ' + esc(D.questNames[q[0]][5]) },
        { h: 'Group', f: (q) => esc(q[2]) }, { h: 'Qty', cls: 'n', f: (q) => num(q[4]) }, { h: 'Chance', cls: 'n', f: (q) => pct(q[5]) }], rewards).replace('<div class="tbl-wrap">', '').replace(/<\/div>$/, '')}</div>`));
     if (supplies.length) out.push(section('Quest Supplies <small>支給品</small>', `<div class="tbl-wrap tall">${table(
@@ -1027,6 +1042,8 @@
   MH2.views.item.after = function () {
     document.querySelectorAll('[data-fzone]').forEach((b) => b.addEventListener('click', () => { pageFilter.zone = b.dataset.fzone; MH2.rerender(); }));
     document.querySelectorAll('[data-frank]').forEach((b) => b.addEventListener('click', () => { pageFilter.rank = b.dataset.frank; MH2.rerender(); }));
+    document.querySelectorAll('[data-ftown]').forEach((b) => b.addEventListener('click', () => { pageFilter.town = b.dataset.ftown; MH2.rerender(); }));
+    document.querySelectorAll('[data-qsort]').forEach((b) => b.addEventListener('click', () => { pageFilter.qsort = b.dataset.qsort; MH2.rerender(); }));
   };
 })();
 ;
